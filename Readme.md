@@ -37,133 +37,76 @@ cd TransAC4C ### go to the location of the file downloaded form this repo
 pip install -r requirements.txt ### install the required packages
 ```
 __3.Analyze sequences by transAC4C__
-We prepared an example file and example python script, you can use it by changeing the corresponding parameter
+We prepared an example file and example python script, you can use it by changeing the corresponding parameter in python
+The detailed functions are:
+3.1 Files preparation
 ```sh
-npm i
-node app
+###### You can download as:
+download_genbank_sequences(email=maiil, accession_ids=id, output_filename=filename)
+###### emial: your email; accession_ids:the list accession id of genes; 
+###### output_filename: name of your fasta file
 ```
-
-For production environments...
-
+3.2 Read fasta
 ```sh
-npm install --production
-NODE_ENV=production node app
+###### read thef fasta you have prepared or downloaded
+seq=find_sequence(fasta_file='example.fasta')
+###### fasta_file: name of your fasta file
+###### 
 ```
-
-## Plugins
-
-Dillinger is currently extended with the following plugins.
-Instructions on how to use them in your own application are linked below.
-
-| Plugin | README |
-| ------ | ------ |
-| Dropbox | [plugins/dropbox/README.md][PlDb] |
-| GitHub | [plugins/github/README.md][PlGh] |
-| Google Drive | [plugins/googledrive/README.md][PlGd] |
-| OneDrive | [plugins/onedrive/README.md][PlOd] |
-| Medium | [plugins/medium/README.md][PlMe] |
-| Google Analytics | [plugins/googleanalytics/README.md][PlGa] |
-
-## Development
-
-Want to contribute? Great!
-
-Dillinger uses Gulp + Webpack for fast developing.
-Make a change in your file and instantaneously see your updates!
-
-Open your favorite Terminal and run these commands.
-
-First Tab:
-
+3.3 Analyze file
+3.3.1 predicting ac4C for every sequences in every slices 
 ```sh
-node app
+### sequences are sliced into 415nt, analyzed by transAC4C-415nt
+process_sequences_Long(seq=seq,species='human',folder_name='csv_slices_415nt')
+### seq:sequence; species: model of species: only human; folder_name:the folder of your result
+
+####sequences are sliced into 21nt or less with cytidine in the middle, analyzed ####by transAC4C-21nt
+process_sequences(seq=seq,species='human',folder_name='csv_slices_21nt',exact=True)
+### seq:sequence; species: model of species: human, yeast, or archaea
+###folder_name:the folder of your result, exact: True means only slices at 21nt 
+###would be analyzed
 ```
-
-Second Tab:
-
+3.3.2 caculating the ac4C score for every sequences 
 ```sh
-gulp watch
+## ac4C scores caculated by transAC4C-415nt or transAC4C-21nt
+scores_Long=Long_scores_computing(seq=seq,species='human')
+##### species:only human
+
+scores_short=scores_computing(seq=seq,species='human')
+##### species:human, yeast, or archaea
+### save scores to txt
+save_list_to_txt(scores_Long,'scores_Long.txt')
+save_list_to_txt(scores_short,'scores_short.txt')
 ```
-
-(optional) Third:
-
-```sh
-karma test
+3.3.3 predicting whether the sequences undergoing ac4C for sequences within 415nt or 21nt
+``` 
+## As the sequences  within 415nt or 21nt are not very common, 
+## therefore we mannually generate two sequences to go the following analysis
+seq0=['CCCTCGTCGTCGTATCCC']*1
+seq=seq0+seq+seq0
+###
+## only the sequences within 415nt was predicted 
+prediction_Long(seq,species='human',folder_name='csv_trial1')
+##### species:only human
+### only the sequences within 21nt was predicted 
+prediction_short(seq,species='human',folder_name='csv_trial2')
+##### species:human, yeast, or archaea
 ```
-
-#### Building for source
-
-For production release:
-
-```sh
-gulp build --prod
+3.3.4 predicting whether the sequences undergoing ac4C for sequences within 415nt or 21nt
+with the interpretation (Computational!!!)
+``` 
+## only the sequences within 415nt was predicted 
+prediction_Long_weighted(seq,species='human',folder_name='csv_trial3',pdf=True)
+##### species:only human; pdf=True means visiulized it 
+### only the sequences within 21nt was predicted 
+prediction_short_weighted(seq,species='human',folder_name='csv_tria4',pdf=True)
+##### species:human, yeast, or archaea; pdf=True means visiulized it 
 ```
-
-Generating pre-built zip archives for distribution:
-
-```sh
-gulp build dist --prod
-```
-
-## Docker
-
-Dillinger is very easy to install and deploy in a Docker container.
-
-By default, the Docker will expose port 8080, so change this within the
-Dockerfile if necessary. When ready, simply use the Dockerfile to
-build the image.
-
-```sh
-cd dillinger
-docker build -t <youruser>/dillinger:${package.json.version} .
-```
-
-This will create the dillinger image and pull in the necessary dependencies.
-Be sure to swap out `${package.json.version}` with the actual
-version of Dillinger.
-
-Once done, run the Docker image and map the port to whatever you wish on
-your host. In this example, we simply map port 8000 of the host to
-port 8080 of the Docker (or whatever port was exposed in the Dockerfile):
-
-```sh
-docker run -d -p 8000:8080 --restart=always --cap-add=SYS_ADMIN --name=dillinger <youruser>/dillinger:${package.json.version}
-```
-
-> Note: `--capt-add=SYS-ADMIN` is required for PDF rendering.
-
-Verify the deployment by navigating to your server address in
-your preferred browser.
-
-```sh
-127.0.0.1:8000
-```
-
-## License
-
-MIT
-
-**Free Software, Hell Yeah!**
-
-[//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
-
-   [dill]: <https://github.com/joemccann/dillinger>
-   [git-repo-url]: <https://github.com/joemccann/dillinger.git>
-   [john gruber]: <http://daringfireball.net>
-   [df1]: <http://daringfireball.net/projects/markdown/>
-   [markdown-it]: <https://github.com/markdown-it/markdown-it>
-   [Ace Editor]: <http://ace.ajax.org>
-   [node.js]: <http://nodejs.org>
-   [Twitter Bootstrap]: <http://twitter.github.com/bootstrap/>
-   [jQuery]: <http://jquery.com>
-   [@tjholowaychuk]: <http://twitter.com/tjholowaychuk>
-   [express]: <http://expressjs.com>
-   [AngularJS]: <http://angularjs.org>
-   [Gulp]: <http://gulpjs.com>
-
-   [PlDb]: <https://github.com/joemccann/dillinger/tree/master/plugins/dropbox/README.md>
-   [PlGh]: <https://github.com/joemccann/dillinger/tree/master/plugins/github/README.md>
-   [PlGd]: <https://github.com/joemccann/dillinger/tree/master/plugins/googledrive/README.md>
-   [PlOd]: <https://github.com/joemccann/dillinger/tree/master/plugins/onedrive/README.md>
-   [PlMe]: <https://github.com/joemccann/dillinger/tree/master/plugins/medium/README.md>
-   [PlGa]: <https://github.com/RahulHP/dillinger/blob/master/plugins/googleanalytics/README.md>
+3.3.5 Additional Function
+make the fasta into a csv, easier for you to search it 
+``` 
+input_filename = "example.fasta"
+output_filename = "example.csv"
+fasta_to_csv(input_filename, output_filename)
+``` 
+__Note again: the aforementioned analysis should be conducted in the 'TransAC4C' dir__
