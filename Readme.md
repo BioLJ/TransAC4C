@@ -26,7 +26,8 @@ git clone https://github.com/BioLJ/TransAC4C.git
 if git is abled in your systmem
 
 __2.Installing requiring packages:__
-New environment  (can be skipped): if you use conda then it's suggested to build a new conda environment by
+New environment  (can be skipped): 
+if you use conda then it's suggested to build a new conda environment by
 ```sh
 conda create --name the_name_of_your_environ python=3.8.10
 source activate the_name_of_your_environ
@@ -37,7 +38,9 @@ cd TransAC4C ### go to the location of the file downloaded form this repo
 pip install -r requirements.txt ### install the required packages
 ```
 __3.Analyze sequences by transAC4C__
+
 We prepared an example file and example python script, you can use it by changeing the corresponding parameter in python
+
 The detailed functions are:
 3.1 Files preparation
 ```sh
