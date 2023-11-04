@@ -1,5 +1,5 @@
 # The transAC4C
-The transAC4C is a deep learning model for prediction RNA sequences undergoing
+The transAC4C is a deep learning architecture for prediction RNA sequences undergoing
 the N4-acetylcytidine (ac4C) modification
 
 ## What is the transAC4C?
@@ -17,12 +17,28 @@ the comparison between different sequences possible
 - interpret the prediction 
 
 ## How to use transAC4C
-we believe you can use it easilly through the transAC4C package.
+__OS dependency: It has been tested successfully in Linux and MacOs__
 
-Install the dependencies and devDependencies and start the server.
-
+__1.We believe you can use it easilly by directly downloading it from this repo or by__
 ```sh
-cd dillinger
+git clone https://github.com/BioLJ/TransAC4C.git
+```
+if git is abled in your systmem
+
+__2.Installing requiring packages:__
+New environment  (can be skipped): if you use conda then it's suggested to build a new conda environment by
+```sh
+conda create --name the_name_of_your_environ python=3.8.10
+source activate the_name_of_your_environ
+```
+Install packages (it takes some time)
+```sh
+cd TransAC4C ### go to the location of the file downloaded form this repo
+pip install -r requirements.txt ### install the required packages
+```
+__3.Analyze sequences by transAC4C__
+We prepared an example file and example python script, you can use it by changeing the corresponding parameter
+```sh
 npm i
 node app
 ```
