@@ -26,6 +26,7 @@ git clone https://github.com/BioLJ/TransAC4C.git
 if git is abled in your systmem
 
 __2.Installing requiring packages:__
+
 New environment  (can be skipped): 
 if you use conda then it's suggested to build a new conda environment by
 ```sh
