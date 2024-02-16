@@ -176,14 +176,14 @@ def predict(model,x_dataloader,device):
 #####
 def process_sequences(seq,species,folder_name='csv_trial',exact=False):
     if species =='human':
-        model_path = 'model/transAC4C-21nt/hmmodel.pth'
+        model_path = 'model/transAC4C-21nt/hm'
     elif species =='archaea':
-        model_path = 'model/transAC4C-21nt/archaeamodel.pth'
+        model_path = 'model/transAC4C-21nt/archaea'
     elif species == 'yeast':
-        model_path = 'model/transAC4C-21nt/yeastmodel.pth'
+        model_path = 'model/transAC4C-21nt/yeast'
     else:
         raise ValueError("Invalid species. Accepted values are 'human', 'archaea', or 'yeast'.")
-    model = torch.load(model_path)
+    directory=model_path
     for i, sequence in enumerate(seq):
         results = []
         os.makedirs(folder_name,exist_ok=True)
@@ -198,9 +198,20 @@ def process_sequences(seq,species,folder_name='csv_trial',exact=False):
         test_set = MyDataset(sequence_tensor, None)
         test_loader = DataLoader(test_set, batch_size=8, shuffle=False, pin_memory=True)
         # prediction
-        prediction, probability = predict_no_weights(model=model, 
-                                                     x_dataloader=test_loader,
-                                                     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        all_files = os.listdir(directory)
+        ckpt_files = [filename for filename in all_files if filename.endswith('.pth')]
+        probalilitys=[]
+        for filename in ckpt_files:
+            filename=directory+'/'+filename
+            model = torch.load(filename)
+            prediction,probalility =predict_no_weights(model=model
+                  ,x_dataloader=test_loader,
+                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            probalilitys.append(probalility)
+        probalilitys_array = np.array(probalilitys)
+        average_probabilities = np.mean(probalilitys_array, axis=0)
+        prediction = (average_probabilities >= 0.5).astype(int)
+        probability=average_probabilities
         npp=np.array(probability) 
         scores=np.mean(npp)
 
@@ -218,14 +229,14 @@ def process_sequences(seq,species,folder_name='csv_trial',exact=False):
 def scores_computing(seq,species,exact=True):
     all_scores=[]
     if species =='human':
-        model_path = 'model/transAC4C-21nt/hmmodel.pth'
+        model_path = 'model/transAC4C-21nt/hm'
     elif species =='archaea':
-        model_path = 'model/transAC4C-21nt/archaeamodel.pth'
+        model_path = 'model/transAC4C-21nt/archaea'
     elif species == 'yeast':
-        model_path = 'model/transAC4C-21nt/yeastmodel.pth'
+        model_path = 'model/transAC4C-21nt/yeast'
     else:
         raise ValueError("Invalid species. Accepted values are 'human', 'archaea', or 'yeast'.")
-    model = torch.load(model_path)
+    directory=model_path
     for i, sequence in enumerate(seq):
         results = []
         is_sequence(sequence)
@@ -240,9 +251,22 @@ def scores_computing(seq,species,exact=True):
         test_loader = DataLoader(test_set, batch_size=8, shuffle=False, pin_memory=True)
         ########################################################################
         # 进行预测
-        prediction, probability = predict_no_weights(model=model, 
-                                                     x_dataloader=test_loader,
-                                                     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        all_files = os.listdir(directory)
+        ckpt_files = [filename for filename in all_files if filename.endswith('.pth')]
+        probalilitys=[]
+        for filename in ckpt_files:
+            filename=directory+'/'+filename
+            #print(filename)
+            model = torch.load(filename)
+            prediction,probalility =predict_no_weights(model=model
+                  ,x_dataloader=test_loader,
+                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            probalilitys.append(probalility)
+        probalilitys_array = np.array(probalilitys)
+        average_probabilities = np.mean(probalilitys_array, axis=0)
+        #print(average_probabilities.shape)
+        prediction = (average_probabilities >= 0.5).astype(int)
+        probability=average_probabilities
         #npp=np.array([p for p in probability  if p > 0.5]) 
         #npp=np.array(probability )
         npp=np.array(probability)
@@ -370,14 +394,14 @@ def prediction_short(seq,species='human',folder_name='csv_trial'):
     os.makedirs(folder_name,exist_ok=True)
     results = []
     if species =='human':
-        model_path = 'model/transAC4C-21nt/hmmodel.pth'
+        model_path = 'model/transAC4C-21nt/hm'
     elif species =='archaea':
-        model_path = 'model/transAC4C-21nt/archaeamodel.pth'
+        model_path = 'model/transAC4C-21nt/archaea'
     elif species == 'yeast':
-        model_path = 'model/transAC4C-21nt/yeastmodel.pth'
+        model_path = 'model/transAC4C-21nt/yeast'
     else:
         raise ValueError("Invalid species. Accepted values are 'human', 'archaea', or 'yeast'.")
-    model = torch.load(model_path)
+    directory=model_path
     for i, sequence in enumerate(seq):
         if len(sequence)<=21:
             is_sequence(sequence)
@@ -390,9 +414,22 @@ def prediction_short(seq,species='human',folder_name='csv_trial'):
             test_loader = DataLoader(test_set, batch_size=8, shuffle=False, pin_memory=True)
 
 
-            prediction, probability = predict_no_weights(model=model, 
-                                                     x_dataloader=test_loader,
-                                                     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+            all_files = os.listdir(directory)
+            ckpt_files = [filename for filename in all_files if filename.endswith('.pth')]
+            probalilitys=[]
+            for filename in ckpt_files:
+                filename=directory+'/'+filename
+                #print(filename)
+                model = torch.load(filename)
+                prediction,probalility =predict_no_weights(model=model
+                  ,x_dataloader=test_loader,
+                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+                probalilitys.append(probalility)
+            probalilitys_array = np.array(probalilitys)
+            average_probabilities = np.mean(probalilitys_array, axis=0)
+            #print(average_probabilities.shape)
+            prediction = (average_probabilities >= 0.5).astype(int)
+            probability= average_probabilities
 
             results.append({
             "Name": f"sequence_{i+1}",
@@ -445,7 +482,7 @@ def plot_bar_charts(seq_print, weights, folder_name='all_png',number=0,x_axis=5)
         y = np.array(weights[:seq_length], dtype=np.float16)
         x = np.array(result_list, dtype=np.float16)
 
-        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
+        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(10, 8))
         extent = [x[0] - (x[1] - x[0]) / 2., x[-1] + (x[1] - x[0]) / 2., 0, 1]
         im = ax.imshow(y[np.newaxis, :], cmap="plasma", aspect="auto", extent=extent)
         ax.set_yticks([])
@@ -455,10 +492,11 @@ def plot_bar_charts(seq_print, weights, folder_name='all_png',number=0,x_axis=5)
         #ax2.set_xticklabels([str(int(x[i])) for i in x_ticks])
         ax2.plot(x, y)
         # Add colorbar
-        cbar = fig.colorbar(im, ax=ax2, orientation='vertical')
+        cbar = fig.colorbar(im, ax=[ax, ax2], location='right', shrink=0.6, pad=0.05)
         cbar.set_label('Weights')
 
-        plt.tight_layout()
+        #plt.tight_layout()
+
         plt.savefig(f'{folder_name}/weights_colored_{i}.pdf')
         plt.close()
     plot_bar_chart(seq_print, weights, folder_name, number,x_axis)
@@ -469,14 +507,14 @@ def prediction_short_weighted(seq,species='human',folder_name='csv_trial',pdf=Tr
     df_w=pd.DataFrame()
     results = []
     if species =='human':
-        model_path = 'model/transAC4C-21nt/hmmodel.pth'
+        model_path = 'model/transAC4C-21nt/hm'
     elif species =='archaea':
-        model_path = 'model/transAC4C-21nt/archaeamodel.pth'
+        model_path = 'model/transAC4C-21nt/archaea'
     elif species == 'yeast':
-        model_path = 'model/transAC4C-21nt/yeastmodel.pth'
+        model_path = 'model/transAC4C-21nt/yeast'
     else:
         raise ValueError("Invalid species. Accepted values are 'human', 'archaea', or 'yeast'.")
-    model = torch.load(model_path)
+    directory=model_path
     for i, sequence in enumerate(seq):
         if len(sequence)<=21:
             is_sequence(sequence)
@@ -489,10 +527,33 @@ def prediction_short_weighted(seq,species='human',folder_name='csv_trial',pdf=Tr
             test_loader = DataLoader(test_set, batch_size=8, shuffle=False, pin_memory=True)
 
 
-            prediction, probability,weights= predict(model=model, 
-                                                     x_dataloader=test_loader,
-                                                     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-            weights=np.mean(weights,axis=0)
+            all_files = os.listdir(directory)
+            ckpt_files = [filename for filename in all_files if filename.endswith('.pth')]
+            probalilitys=[]
+            weight=[]
+            for filename in ckpt_files:
+                filename=directory+'/'+filename
+                #print(filename)
+                model = torch.load(filename)
+                prediction,probalility,weights=predict(model=model
+                  ,x_dataloader=test_loader,
+                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+                probalilitys.append(probalility)
+                #print(weights[0])
+                weights=np.mean(weights,axis=0)
+                #print(weights[0])
+                weight.append(weights)
+            #print(np.array(weight).shape)
+            #weight=np.array(weight).transpose(1, 0, 2)
+            weight = np.mean(weight, axis=0)
+            weights=weight
+            #print(weights)
+            probalilitys_array = np.array(probalilitys)
+            average_probabilities = np.mean(probalilitys_array, axis=0)
+            #print(average_probabilities.shape)
+            prediction = (average_probabilities >= 0.5).astype(int)
+            probability= average_probabilities
+            #weights=np.mean(weights,axis=0)
             sequence_df = pd.DataFrame(weights)
             sequence_df = sequence_df.T
             df_w = pd.concat([df_w, sequence_df])
