@@ -474,10 +474,13 @@ def fasta_to_csv(input_filename, output_filename):
     df.to_csv(output_filename, index=False)
     print(f"CSV '{output_filename}' generated!!!")
 ###
-def plot_bar_charts(seq_print, weights, folder_name='all_png',number=0,x_axis=5):
+def plot_bar_charts(seq_print, weights, folder_name='all_png',number=0,x_axis=5,legend_name='Weights',base=False):
     os.makedirs(folder_name, exist_ok=True)
     def plot_bar_chart(seq, weights, folder_name, i,x_axis=5):
-        seq_length = len(seq)-2
+        if base==False:
+            seq_length = len(seq)-2
+        else:
+            seq_length = len(seq)
         result_list = [i for i in range(1, seq_length + 1)]
         y = np.array(weights[:seq_length], dtype=np.float16)
         x = np.array(result_list, dtype=np.float16)
@@ -491,9 +494,13 @@ def plot_bar_charts(seq_print, weights, folder_name='all_png',number=0,x_axis=5)
         ax2.set_xticks(x_ticks)
         #ax2.set_xticklabels([str(int(x[i])) for i in x_ticks])
         ax2.plot(x, y)
+        ax2.set_xlabel('Position starting from 1')
+        ax2.set_ylabel('Importance')
+        ax.set_xlabel('Position starting from 1')
+        ax.set_ylabel('Importance')
         # Add colorbar
         cbar = fig.colorbar(im, ax=[ax, ax2], location='right', shrink=0.6, pad=0.05)
-        cbar.set_label('Weights')
+        cbar.set_label(legend_name)
 
         #plt.tight_layout()
 
@@ -622,3 +629,161 @@ def prediction_Long_weighted(seq,species='human',folder_name='csv_trial',pdf=Tru
     name=folder_name+'/'+'weights'+'.csv'
     df_w.to_csv(name,index = None,encoding = 'utf8')
     print(name+' has been created')
+####
+def calculate_pro(sequences, species,folder_name):
+    pro_list = []
+    def short(seq):
+        average_probabilities_t=[]
+        for i, sequence in enumerate(seq):
+            if len(sequence)<=21:
+                is_sequence(sequence)
+                sequence = [sequence]
+                letters = ['A', 'T', 'C', 'G']
+                char_dict = generate_char_dict(letters, length=3)
+                indices = [generate_indices(seq, char_dict, desired_length=19) for seq in sequence]
+                sequence_tensor = torch.from_numpy(np.array(indices))
+                test_set = MyDataset(sequence_tensor, None)
+                test_loader = DataLoader(test_set, batch_size=8, shuffle=False, pin_memory=True)
+
+                all_files = os.listdir(directory)
+                ckpt_files = [filename for filename in all_files if filename.endswith('.pth')]
+                probalilitys=[]
+                for filename in ckpt_files:
+                    filename=directory+'/'+filename
+                    model = torch.load(filename)
+                    prediction,probalility =predict_no_weights(model=model
+                      ,x_dataloader=test_loader,
+                     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+                    probalilitys.append(probalility)
+                probalilitys_array = np.array(probalilitys)
+                average_probabilities = np.mean(probalilitys_array, axis=0)
+                probability= average_probabilities
+                average_probabilities_t.append(probability)
+        return average_probabilities_t 
+
+    if species =='human':
+        model_path = 'model/transAC4C-21nt/hm'
+    elif species =='archaea':
+        model_path = 'model/transAC4C-21nt/archaea'
+    elif species == 'yeast':
+        model_path = 'model/transAC4C-21nt/yeast'
+    else:
+        raise ValueError("Invalid species. Accepted values are 'human', 'archaea', or 'yeast'.")
+    directory=model_path
+    average_probabilities_t = short(sequences)
+    nun_sequence=0
+    for i in range(len(sequences)):
+        validneg_circle=sequences[i]
+        if len(validneg_circle)<=21:
+            new_list = []
+            for k in range(len(validneg_circle)):
+                for base in ['A', 'C', 'G', 'T']:  # 遍历A、C、G、T
+                    if validneg_circle[k] != base:
+                        new_sequence = validneg_circle[:k] + base + validneg_circle[k+1:]
+                        new_list.append(new_sequence)
+            indicess=[]
+            letters = ['A', 'T', 'C', 'G']
+            char_dict = generate_char_dict(letters, length=3)
+            for sequence in new_list:
+                indice = generate_indices(sequence, char_dict, desired_length=19)
+                indicess.append(indice)
+            seque = torch.from_numpy(np.array(indicess))
+            test_set = MyDataset(seque, None)
+            test_loader = DataLoader(test_set, batch_size=256, shuffle=False, pin_memory=True)
+            all_files = os.listdir(directory)
+            ckpt_files = [filename for filename in all_files if filename.endswith('.pth')]
+            probalilitys=[]
+            for filename in ckpt_files:
+                filename=directory+'/'+filename
+                model = torch.load(filename)
+                _,probalility=predict_no_weights(model=model
+                      ,x_dataloader=test_loader,
+                     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+                probalilitys.append(probalility)
+            probalilitys_array = np.array(probalilitys)
+            average_probabilities = np.mean(probalilitys_array, axis=0).flatten()
+            reshaped_array = average_probabilities.reshape(-1, 3)
+            min_values = np.min(reshaped_array, axis=1).flatten()
+            #print(i,average_probabilities_t)
+            pro=-(min_values-average_probabilities_t[nun_sequence])
+            plot_bar_charts(seq_print=validneg_circle,weights=pro,folder_name=(folder_name+'/in_silico_mutat_pdf'),number=i+1,
+                            x_axis=5,legend_name='Changes of Probability',base=True)
+            pro_list.append(pro)
+            nun_sequence=nun_sequence+1
+    df_data = []
+    for i, pro_values in enumerate(pro_list, start=0):
+        row = {"sequence": f"sequence_{i}", **{f"Position_{j+1}": value for j, value in enumerate(pro_values, start=0)}}
+        df_data.append(row)
+    
+    df = pd.DataFrame(df_data)
+    df.to_csv(f"{folder_name}/in_silico_mutagenesis.csv", index=False)
+#########
+def calculate_pro_long(sequences, species,folder_name):
+    pro_list = []
+    def long(seq):
+        average_probabilities_t=[]
+        for i, sequence in enumerate(seq):
+            if len(sequence)<=415:
+                is_sequence(sequence)
+                sequence = [sequence]
+                letters = ['A', 'T', 'C', 'G']
+                char_dict = generate_char_dict(letters, length=3)
+                indices = [generate_indices(seq, char_dict, desired_length=413) for seq in sequence]
+                sequence_tensor = torch.from_numpy(np.array(indices))
+                test_set = MyDataset(sequence_tensor, None)
+                test_loader = DataLoader(test_set, batch_size=8, shuffle=False, pin_memory=True)
+                probalilitys=[]
+                prediction,probalility =predict_no_weights(model=model
+                      ,x_dataloader=test_loader,
+                     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+                probalilitys.append(probalility)
+                probalilitys_array = np.array(probalilitys)
+                probability= probalilitys_array 
+                average_probabilities_t.append(probability)
+        return average_probabilities_t 
+
+    if species =='human':
+        model_path = 'model/transAC4C-415nt/model.pth'
+    else:
+        raise ValueError("Invalid species. Accepted values is 'human")
+    model = torch.load(model_path)
+    average_probabilities_t = long (sequences)
+    for i in range(len(sequences)):
+        validneg_circle=sequences[i]
+        #print(sequences)
+        new_list = []
+        for k in range(len(validneg_circle)):
+            for base in ['A', 'C', 'G', 'T']:  # 遍历A、C、G、T
+                if validneg_circle[k] != base:
+                    new_sequence = validneg_circle[:k] + base + validneg_circle[k+1:]
+                    new_list.append(new_sequence)
+        indicess=[]
+        #print(new_list)
+        letters = ['A', 'T', 'C', 'G']
+        char_dict = generate_char_dict(letters, length=3)
+        for sequence in new_list:
+            indice = generate_indices(sequence, char_dict, desired_length=413)
+            indicess.append(indice)
+        seque = torch.from_numpy(np.array(indicess))
+        test_set = MyDataset(seque, None)
+        test_loader = DataLoader(test_set, batch_size=256, shuffle=False, pin_memory=True)
+        _,probalility=predict_no_weights(model=model
+                      ,x_dataloader=test_loader,
+                     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        probalilitys_array = np.array(probalility)
+        average_probabilities = probalilitys_array.flatten()
+        reshaped_array = average_probabilities.reshape(-1, 3)
+        min_values = np.min(reshaped_array, axis=1).flatten()
+        average_probabilities_t_expanded = np.full_like(min_values, average_probabilities_t[i])
+        pro = -(min_values - average_probabilities_t_expanded)
+        #print(pro.shape)
+        plot_bar_charts(seq_print=validneg_circle,weights=pro,folder_name=(folder_name+'/in_silico_mutat_pdf'),number=i+1,
+                            x_axis=50,legend_name='Changes of Probability',base=True)
+        pro_list.append(pro)
+    df_data = []
+    for i, pro_values in enumerate(pro_list, start=0):
+        row = {"sequence": f"sequence_{i}", **{f"Position_{j+1}": value for j, value in enumerate(pro_values, start=0)}}
+        df_data.append(row)
+    
+    df = pd.DataFrame(df_data)
+    df.to_csv(f"{folder_name}/in_silico_mutagenesis.csv", index=False)

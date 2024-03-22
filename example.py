@@ -19,3 +19,14 @@ prediction_short_weighted(seq,species='human',folder_name='csv_tria4',pdf=True)
 input_filename = "example.fasta"
 output_filename = "example.csv"
 fasta_to_csv(input_filename, output_filename)
+############
+seq1=['CCTATTAATGCTGAGAGATCC','TTAAGGATTCCGTCCCTTACA','TTCGAAGCCCCGCCGGTCCGC']
+seq_hm_long=['AGGCGCAGAGGAGGGCGGTGTTGAGACCGGCGGAGCGGCGGGACCCCTAGGTGGCGGAGGGACGCTCCGGGAAAGCGAGGGGCGCTACGAGCTCTGGCCCACGTGACCTGCCGGGGGCGGGAGCAGGGGGCGCGCCGGCCTCCTGCGGTGCCCCTGCCTTGGGGAGGGGCCGTGACCACCCGTCTGTCGCCCGAGGCGGCCGCCGCTGCACCTTCACCGCGTACCCGGGAC']
+prediction_short_weighted(seq1,species='human',folder_name='csv_trial1_human',pdf=True)
+calculate_pro(seq1,species='human',folder_name='csv_trial1/pro')
+prediction_short_weighted(seq1,species='yeast',folder_name='csv_trial1_yeast',pdf=True)
+calculate_pro(seq1,species='yeast',folder_name='csv_trial1_yeast/pro')
+prediction_short_weighted(seq1,species='archaea',folder_name='csv_trial1_archaea',pdf=True)
+calculate_pro(seq1,species='archaea',folder_name='csv_trial1_archaea')
+prediction_Long_weighted(seq_hm_long,species='human',folder_name='csv_trial_long',pdf=True)
+calculate_pro_long(seq_hm_long,species='human',folder_name='csv_trial_long/pro')

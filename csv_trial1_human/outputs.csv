@@ -1,0 +1,4 @@
+Name,sequence,prediction,probability
+sequence_1,['CCTATTAATGCTGAGAGATCC'],[1],[0.95110303]
+sequence_2,['TTAAGGATTCCGTCCCTTACA'],[1],[0.84374471]
+sequence_3,['TTCGAAGCCCCGCCGGTCCGC'],[0],[0.17098885]
