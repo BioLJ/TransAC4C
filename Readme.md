@@ -116,7 +116,6 @@ calculate_pro(seq1,species='archaea',folder_name='csv_trial1_archaea/pro')
 # interpretate the results of sequences <= 415nt by model-TransAC4C-415nt
 calculate_pro_long(seq_hm_long,species='human',folder_name='csv_trial_long/pro')
 ``` 
-```
 3.3.6 Additional Function
 make the fasta into a csv, easier for you to search it 
 ``` 
