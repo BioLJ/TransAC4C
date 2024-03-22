@@ -13,8 +13,8 @@ conv1d layers.
 - predicting the possibility of sequence undergoing ac4C <= 415nt through transAC4C-415nt
 - predicting the degree of the sequence undergoing ac4C of any length, which make
 the comparison between different sequences possible
-- predicting ac4C sites cross species
-- interpret the prediction 
+- predicting ac4C sites in multi species
+- interpret the prediction by two methods (Attention weights and In-silico-mutagenesis)
 
 ## How to use transAC4C
 __OS dependency: It has been tested successfully in Linux and MacOs__
@@ -98,7 +98,7 @@ prediction_short(seq,species='human',folder_name='csv_trial2')
 ##### species:human, yeast, or archaea
 ```
 3.3.4 predicting whether the sequences undergoing ac4C for sequences within 415nt or 21nt
-with the interpretation (Computational!!!)
+with the interpretation by Attention Weights (Computational!!!)
 ``` 
 ## only the sequences within 415nt was predicted 
 prediction_Long_weighted(seq,species='human',folder_name='csv_trial3',pdf=True)
@@ -107,11 +107,21 @@ prediction_Long_weighted(seq,species='human',folder_name='csv_trial3',pdf=True)
 prediction_short_weighted(seq,species='human',folder_name='csv_tria4',pdf=True)
 ##### species:human, yeast, or archaea; pdf=True means visiulized it 
 ```
-3.3.5 Additional Function
+3.3.5 Interpretate the results by in-silico-mutagenesis (Computational!!!)
+``` 
+# interpretate the results of sequences <= 21nt by model-TransAC4C-21nt
+calculate_pro(seq1,species='human',folder_name='csv_trial1_human/pro')
+calculate_pro(seq1,species='yeast',folder_name='csv_trial1_yeast/pro')
+calculate_pro(seq1,species='archaea',folder_name='csv_trial1_archaea/pro')
+# interpretate the results of sequences <= 415nt by model-TransAC4C-415nt
+calculate_pro_long(seq_hm_long,species='human',folder_name='csv_trial_long/pro')
+``` 
+```
+3.3.6 Additional Function
 make the fasta into a csv, easier for you to search it 
 ``` 
 input_filename = "example.fasta"
 output_filename = "example.csv"
 fasta_to_csv(input_filename, output_filename)
 ``` 
-__Note again: the aforementioned analysis should be conducted in the 'TransAC4C' dir__
+__Note again: the aforementioned analysis should be conducted in the 'TransAC4C' dir
