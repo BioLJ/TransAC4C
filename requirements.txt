@@ -1,0 +1,7 @@
+Bio==1.6.0
+biopython==1.80
+matplotlib==3.7.1
+numpy==1.21.4
+pandas==2.0.3
+torch==2.0.1
+tqdm==4.64.1
