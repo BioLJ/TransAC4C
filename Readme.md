@@ -2,6 +2,7 @@
 The transAC4C is a deep learning architecture for prediction RNA sequences undergoing
 the N4-acetylcytidine (ac4C) modification
 
+Reference: Ruijie Liu, Yuanpeng Zhang, Qi Wang, Xiaoping Zhang, TransAC4C—a novel interpretable architecture for multi-species identification of N4-acetylcytidine sites in RNA with single-base resolution, Briefings in Bioinformatics, Volume 25, Issue 3, May 2024, bbae200, https://doi.org/10.1093/bib/bbae200
 ## What is the transAC4C?
 - The transAC4C consistes of two models transAC4C-21nt and transAC4C-415nt trained in 
 the data with single-base resolution or not respectively. 
